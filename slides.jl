@@ -1,10 +1,15 @@
 using Markdown
 using Color
 using SymPy
+using Compose
+using Gadfly
+using Images
 
 include("repl.jl")
 
 presentable(x) = Escher.fontsize(1.5em, lineheight(2em, x))
+
+Compose.set_default_graphic_size(4inch, (2*√3)*inch)
 
 codeslide(code) = begin
     input = Input(code)
@@ -23,6 +28,7 @@ function main(window)
     push!(window.assets, "animation")
     push!(window.assets, "widgets")
     push!(window.assets, "tex")
+    push!(window.assets, "layout2")
     push!(window.assets, "codemirror")
 
     slideshow([
@@ -124,7 +130,7 @@ function main(window)
                     mkcircle(100, 200, 70),
                     mkcircle(100, 100, 10, "orange"),
                     mkcircle(80, 80, 10, "white"),
-                    mkcircle(120, 80, 10, "white")
+                    mkcircle(120, 80, 10, "white"),
                  ], width=500px, height=500px)
                 """)
         ), transitions="cross-fade-all"),
@@ -138,6 +144,8 @@ function main(window)
                     cos^2 \\\\theta - sin^2 \\\\theta\"\"\",
                 block=true
             )
+
+            # code-mirror
             """)
         ) |> packacross(center), transitions="cross-fade-all"),
         vbox(
@@ -155,7 +163,10 @@ function main(window)
             title(2, md"Content: Textual"),
             codeslide("""
             "Hello, World"
-            # Markdown.
+
+
+            # Markdown
+            # CodeMirror
             #
             # using SymPy
             # x = Sym("x")
@@ -179,7 +190,18 @@ function main(window)
                 end
             end
 
-            drawing(4inch, (2*√3)*inch, sierpinski(2))
+            drawing(4inch, (2*√3)*inch,
+                sierpinski(2))
+            """)
+        ),
+        vbox(
+            title(2, md"Content: Plots"),
+            codeslide("""
+            using Gadfly
+
+            plot([sin, cos], 0, 25)
+            #plot(z=(x,y) -> x*exp(-(x-int(x))^2-y^2),
+            #     x=linspace(-8,8,150), y=linspace(-2,2,150), Geom.contour)
             """)
         ),
         vbox(
@@ -194,35 +216,170 @@ function main(window)
             # using Color
             colors = colormap("reds", 7)
 
-            box1 = container(10em, 10em) |> fillcolor(colors[3])
-            box2 = container(5em, 5em) |> fillcolor(colors[5])
+            box1 = container(10em, 10em) |>
+                     fillcolor(colors[3])
+            box2 = container(5em, 5em) |>
+                     fillcolor(colors[5])
 
             vbox(box1, box2)
-            #boxes = [container((5 + i)*em, (5 + i)*em) |>
+            #boxes = [container(i*em, i*em) |>
             #    fillcolor(colors[i])
             #       for i=1:7]
 
             """)
         ),
         vbox(
-            h1("The programming model"), vskip(1em), title(3, tex("UI = f(data)")),
+            hbox(title(2, md"Layout 2"), hskip(1em), "" |>
+                Escher.fontsize(1.5em)) |>
+                packacross(center),
+            codeslide("""
+            t = tabs([
+                hbox(icon("star-half"), hskip(1em), "Vector graphics"),
+                hbox(icon("trending-up"), hskip(1em), "Plots"),
+            ])
+            p = pages([
+               sierpinski(2),
+               plot([sin, cos], 0, 25),
+            ])
+
+            t, p = wire(t, p, :tabs, :selected)
+            vbox(t, p)
+            """)
         ),
         vbox(
-            h1("The programming model"), vskip(1em), title(3, tex("UI_t = f(data_t)")),
+            title(1, md"Abstraction 3"),
+            title(2, md"Typography"),
         ),
-        title(3, md"But *how*? - for the JavaScript geek"),
-        vbox(intersperse(vskip(2em), [
-          "f(data) ⟶ UI object",
-          md"UI object ⟶ Virtual DOM (on the *server*, yes, on the server!)",
-          "Virtual DOM (server) ⟶ JSON ⟶ Virtual DOM (client)",
-          "Virtual DOM (client) ⟶ Browser DOM",
-        ])) |> Escher.fontsize(2em),
-        title(1, "Updates are sent as patches to the Virtual DOM"),
-        image("/assets/img/dynamicui.png"),
+        vbox(
+            hbox(title(2, md"Typography"), hskip(1em), "" |>
+                Escher.fontsize(1.5em)) |>
+                packacross(center),
+            codeslide("""
+
+            samples = vcat(
+               [Escher.title(i, "Title \$i")
+                   for i=1:4],
+               [heading(i, "Heading \$i")
+                   for i=4:-1:1]
+            )
+
+            vbox(
+                samples
+            )
+            """)
+        ),
+        vbox(
+            title(2, md"Interactivity"),
+            title(1, md"Introducing the time dimension"),
+        ),
+        vbox(
+            h1("The story so far"), vskip(1em), title(3, tex("UI = f(data)")),
+        ),
+        vbox(
+            title(3, md"We turn to reactive programming"),
+            title(2, md"Inspiration: Elm"),
+            title(1, md"elm-lang.org"),
+            title(2, md"Reactive.jl"),
+            title(1, md"github.com/JuliaLang/Reactive.jl"),
+        ),
+        vbox(
+            title(2, md"The Signal primer"),
+            title(3, md"Think *circuitry*"),
+            title(2, md"`dataₜ ⇝ f ⇝ outputₜ`"),
+        ) |> packacross(center),
+        vbox(
+           title(2, "Signal: first principles"),
+           vskip(2em),
+           md"""- A signal has a value at any given time
+              - The value held by a signal can change as time passes""" |> presentable,
+        ),
+        vbox(
+           title(2, "Input Signal"),
+           vskip(1em),
+           "An input signal is created as below. It must have a default value." |> presentable,
+           vskip(1em),
+           codemirror("int_signal = Input(0)"),
+           md"The value held by an input signal can be updated with `push!`" |> presentable,
+           codemirror("push!(int_signal, 42)"),
+        ),
+        vbox(
+           title(2, "Functions that operate on signals"),
+           vskip(2em),
+           codemirror("""
+           consume     : (Function, Signal) ⟶ Signal
+           foldl       : (Function, initial_value, Signal) ⟶ Signal
+           filter      : (Function, default_value, Signal) ⟶ Signal
+           merge       : (Signal...) ⟶ Signal
+           droprepeats : (Signal) ⟶ Signal
+           keepwhen    : (Signal{Bool}, Signal) ⟶ Signal
+           fps         : (Float64) ⟶ Signal
+           fpswhen     : (Signal{Bool}, Float64) ⟶ Signal
+           """, linenumbers=false) |> fonttype(monospace) |> presentable
+        ),
+        vbox(
+           title(2, md"consume example: turning `Input` to a signal of UIs"),
+           codeslide("""
+           steps = Input(0)
+
+           steps_slider =
+               subscribe(slider(0:6), steps)
+
+           vbox(
+               steps_slider,
+               consume(sierpinski, steps),
+           )
+           """),
+        ),
+        vbox(
+           title(2, "consume example: Animation"),
+           vskip(1em),
+           codeslide("""
+           switch_state = Input(false)
+           switch = subscribe(togglebutton(false),
+                              switch_state)
+
+           ticks = fpswhen(switch_state, 60)
+
+           showball(x) =
+             compose(context(),
+               circle(.5,
+                 .1 + (1-abs(sin(2*time()))) * 0.8,
+                 .1
+               ), fill("tomato"))
+           vbox(
+            switch,
+               consume(showball, ticks),
+           )
+           """),
+        ),
+        title(3, "What makes a Widget?"),
+        vbox(
+            title(1, "Abstraction 4"),
+            title(3, "Behavior"),
+        ),
+        vbox(
+            title(2, "Behavior"),
+            vskip(1em),
+            codeslide("""
+            clickme = clickable("Click me!" |>
+                        Escher.fontsize(2em) |>
+                        fontweight(500))
+
+            clicks = Input{Escher.MouseButton}(
+                       leftbutton
+            )
+
+            vbox(
+                subscribe(clickme, clicks),
+                foldl((cnt, _) -> cnt + 1, 0, clicks),
+            )
+            """)
+        ),
+        #image("/assets/img/dynamicui.png"),
         #include(joinpath(pwd(), "latex.jl"))(window),
         vbox(
             title(3, "Fully loaded"),
-            "Text, Markdown, TeX-style Layout, Type scales, 2D Vector graphics (Compose), Plots (Gadfly), Widgets (thanks polymer!), Composable behavior, 3D Graphics!, A camera!, slideshows" |> width(20em) |> Escher.fontsize(2em) |> lineheight(2em),
+            "Text, Markdown, TeX-style Layout, Type scales, 2D Vector graphics (Compose), Plots (Gadfly), Widgets (thanks polymer!), Composable behavior, 3D Graphics!, A camera!, slideshows" |> Escher.width(20em) |> Escher.fontsize(2em) |> lineheight(2em),
         ),
         vbox(
             title(3, "Thanks for the inspiration, and code!"),
