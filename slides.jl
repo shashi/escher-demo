@@ -33,8 +33,8 @@ function main(window)
 
     slideshow([
         vbox(
-            title(4, "A Virtual DOM on the Server?"),
             title(2, "What?"),
+            title(3, "A Virtual DOM on the Server?"),
             vskip(4em),
             title(1, "Shashi Gowda"),
             title(1, "@g0wda"),
@@ -48,6 +48,7 @@ function main(window)
         title(2, md"Minesweeper: 70 SLOC"),
         #include(joinpath(pwd(), "minesweeper.jl"))(window),
         title(2, md"Boids: 84 SLOC (credits: Iain Dunning github.com/IainNZ)"),
+        title(3, "But how?"),
         vbox(
             title(3, "The DOM"),
             vskip(2em),
@@ -59,14 +60,13 @@ function main(window)
             title(1, "Bad DOM!"),
             vskip(2em),
             vbox(
-                md"- Callbacks and State are the evil king and queen",
-                  md"""
-                  - They necessitate each other
-                  - We increasingly understand that callbacks are not ideal""" |> indent,
                 md"- State leads to combinatorial explosion.",
                   md"- Average person can hold < 10 things in his brain at a time" |> indent,
                   md"- But 2^50 = 10^15, there are 10^11 stars in the Milky Way" |> indent,
-                  md"- I hope DOM is remembered as a WTF moment from the Web's dark past" |> indent
+                md"- State and Callback are the evil king and queen",
+                  md"""
+                  - They necessitate each other
+                  - We increasingly understand that callbacks are not ideal""" |> indent,
               ) |> presentable
         ),
         vbox(
@@ -95,7 +95,7 @@ function main(window)
             image("http://i.giphy.com/UY6K0O5xNeG2s.gif", alt="The Eye of Sauron"),
         ),
         vbox(
-            title(3, "The lowest level of abstraction"),
+            title(3, "Virtual DOM is the substrate"),
             vskip(2em),
             title(2, "Patchwork.jl"),
             title(1, "github.com/shashi/Patchwork.jl"),
@@ -104,7 +104,7 @@ function main(window)
             title(1, "github.com/Matt-Esch/virtual-dom"),
         ),
         vbox(
-            title(3, md"**Patchwork.jl** provides the `Elem` type"),
+            title(3, md"Patchwork.jl provides the `Elem` type"),
             vskip(2em),
             codeslide("""
             Elem(:div, "Hello, World",
@@ -116,7 +116,7 @@ function main(window)
             )""")
         ),
         slide(vbox(
-            title(3, md"**Patchwork.jl** provides the `Elem` type"),
+            title(3, md"Patchwork.jl provides the `Elem` type"),
             vskip(2em),
             codeslide("""
                 mkcircle(x, y, r, color="lightgrey") =
@@ -229,6 +229,26 @@ function main(window)
             """)
         ),
         vbox(
+            hbox(title(2, md"Layouts: padding and inset"), hskip(1em), "" |>
+                Escher.fontsize(1.5em)) |>
+                packacross(center),
+            codeslide("""
+            x = Escher.pad(1em, box1)
+
+            #
+            # inset(offset(middle, 5em, 4em), container(10em, 10em) |> fillcolor("tomato"), x)
+            #
+            """)
+        ),
+        vbox(
+            md"""[CSS] is so complex that it has never been implemented correctly; yet, successive versions specify even more complexity. At the same time, it is so underpowered that many elementary graphic designs are impossible or prohibitively difficult, and context-sensitivity (or anything computational) must be addressed externally. Most CSS lore is dedicated to describing the tangles of brittle hacks needed to circumvent incompatibilities or approximate a desired appearance.""" |> maxwidth(30em),
+            md"-- Bret Victor *MagicInk*"
+        ) |> presentable,
+        vbox(
+            md"""One cause of the CSS mess is the eschewing of elegant, flexible abstractions for “1000 special cases,” a detrimental approach which precludes simplicity and generality in any domain. However, the larger and more germane fault is the language’s attempt to serve as both *tool* and *platform*, thereby succeeding as neither.""" |> maxwidth(30em),
+            md"-- Bret Victor *MagicInk*"
+        ) |> presentable,
+        vbox(
             hbox(title(2, md"Layout 2"), hskip(1em), "" |>
                 Escher.fontsize(1.5em)) |>
                 packacross(center),
@@ -317,7 +337,7 @@ function main(window)
            """, linenumbers=false) |> fonttype(monospace) |> presentable
         ),
         vbox(
-           title(2, md"consume example: turning `Input` to a signal of UIs"),
+           title(2, md"consume example: turning `Input` into a signal of UIs"),
            codeslide("""
            steps = Input(0)
 
@@ -347,7 +367,7 @@ function main(window)
                  .1
                ), fill("tomato"))
            vbox(
-            switch,
+               switch,
                consume(showball, ticks),
            )
            """),
@@ -375,18 +395,84 @@ function main(window)
             )
             """)
         ),
+        vbox(
+            title(2, "What's in the DOM?"),
+            vskip(1em),
+            md"""
+            - `clickable-behavior` adds a click event listener to its parent
+            - it can be configured to listen for different mouse buttons
+            - `signal-transport` updates a signal with a `signalId` on the server
+            - `stop-propagation` stops the event from bubbling up to prevent clashes
+            """ |> presentable
+        ),
+        vbox(
+            title(2, "Other behaviors include"),
+            vskip(1em),
+            md"""
+            - `hasstate`: watch for attribute X when event Y is fired
+            - `keypress`: watch for certain keypresses
+            """ |> presentable
+        ),
+        vbox(
+            title(1, "Abstraction (Julia-side) 5"),
+            title(3, "Interpreters"),
+        ),
+        vbox(
+            title(2, "Why do we need interpreters?"),
+            vskip(1em),
+            md"""
+            - Each behavior results in a certain kind of values. e.g. Clicks are of the type `MouseButton`
+            - Interpreters allow us to decode and augment messages coming from the browser
+            """ |> presentable
+        ),
+        vbox(
+            title(2, md"Interpreter example: `constant`"),
+            vskip(1em),
+            codeslide("""
+            delta = Input(0)
+
+            inc = constant(1, button("+")) >>> delta
+            dec = constant(-1, button("-")) >>> delta
+
+            count = foldl(+, 0, delta)
+
+            hbox(
+                inc,
+                hskip(1em),
+                title(2, count),
+                hskip(1em),
+                dec
+            )
+            """)
+        ),
+        vbox(
+            title(2, "Widget = UI + Behavior + Interpreter"),
+            md"""
+            For example,,
+            
+            a slider has a default behaviour of `WatchState` and an interpreter `ToType{Real}`
+            """ |> presentable,
+        ),
+        vbox(
+            title(2, "Real world code walk-through"),
+        ),
         #image("/assets/img/dynamicui.png"),
         #include(joinpath(pwd(), "latex.jl"))(window),
-        vbox(
-            title(3, "Fully loaded"),
-            "Text, Markdown, TeX-style Layout, Type scales, 2D Vector graphics (Compose), Plots (Gadfly), Widgets (thanks polymer!), Composable behavior, 3D Graphics!, A camera!, slideshows" |> Escher.width(20em) |> Escher.fontsize(2em) |> lineheight(2em),
-        ),
         vbox(
             title(3, "Thanks for the inspiration, and code!"),
             md"""
             - Elm
             - virtual-dom
+            - Polymer
             - $\KaTeX$
+            """ |> lineheight(2em) |> Escher.fontsize(2em)
+        ),
+        vbox(
+            title(3, "Thanks for the inspiration, and code!"),
+            md"""
+            - Compose, Gadfly
+            - Images
+            - SymPy
             """ |> lineheight(2em) |> Escher.fontsize(2em)
         ),
         vbox(
