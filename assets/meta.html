@@ -1,0 +1,44 @@
+<html>
+<head>
+  <script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="import" href="bower_components/polymer/polymer.html">
+  <link rel="import" href="basics.html">
+  <style>
+    meta-tag-one /deep/ #show {
+      color: blue;
+      background-color: red;
+      padding: 1em;
+    }
+  </style>
+</head>
+
+<body>
+  <dom-module
+    id="x-tag-one">
+    <template></template>
+    <script>
+    Polymer({
+      is:"x-tag-one",
+      attached: function () {
+        console.log("fuck u")
+      }
+    })
+    </script>
+  </dom-module>
+
+  <dom-module
+    id="meta-tag-one">
+    <template><div class="fuck"><content></content></div></template>
+    <script>
+    Polymer({
+      is:"meta-tag-one"
+      })
+    </script>
+  </dom-module>
+
+  <meta-tag-one><div id="show">Shit</div>
+  <x-tag-one></x-tag-one>
+  </meta-tag-one>
+
+</body>
+</html>

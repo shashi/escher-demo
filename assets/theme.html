@@ -1,0 +1,46 @@
+<!-- this does not work yet, but it should -->
+
+<link rel="import" href="bower_components/core-style/core-style.html">
+<!-- default theme -->
+
+<core-style id="base">
+
+    {{list.base.cssText}}
+
+    :host {
+        font-family: 'Open Sans', sans-serif;
+        color: rgb(45, 46, 48);
+        font-size: 100%;
+        line-height: 24px;
+        font-size: 14px;
+        text-indent: -0.074em;
+    }
+    :host /shadow/ table th {
+        padding: 0.1em 0.5em;
+        font-weight: bold;
+    }
+
+    :host /shadow/ td {
+        padding: 0.1em 0.5em;
+    }
+
+    table thead {
+        border-bottom: 1px solid #989898;
+    }
+</core-style>
+
+
+<polymer-element
+    name="apply-theme" >
+
+
+<template>
+    <core-style ref="base"></core-style>
+    <shadow></shadow>
+</template>
+
+<script>
+Polymer({
+})
+</script>
+</polymer-element>
