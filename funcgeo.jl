@@ -1,15 +1,17 @@
 using Markdown
 using Interact
+using Compose
 
 Compose.set_default_graphic_size(2inch, 2inch)
 
 
-codecell(input, output=eval(parse("begin $input end")); f = x -> x) =
-    vbox(
-        codemirror(input),
+codecell(input, output=eval(parse("begin $input end")); f = x -> x, layout=hbox) =
+    layout(
+      codemirror(input),
+       hskip(1em),
        vskip(1em),
        output |> f
-    ) |> Escher.pad([left], 4em)
+    ) |> packacross(center) |> packitems(center)
 
 points_f = [
     (.1, .1),
@@ -118,17 +120,22 @@ function main(window)
 
 md"""
 
-$(title(3, "Functional Geometry"))
+$(title(3, "Functional Geometry") |> fontcolor("#333"))
 
-*Functional Geometry* is a paper by Peter Henderson ([original (1982)](users.ecs.soton.ac.uk/peter/funcgeo.pdf), [revisited (2002)](https://cs.au.dk/~hosc/local/HOSC-15-4-pp349-365.pdf)) which deconstructs the MC Escher woodcut *Square Limit*
+$(vskip(1em))
 
-> A picture is an example of a complex object that can be described in terms of its parts.  Yet a picture needs to be rendered on a printer or a screen by a device that expects to be given a sequence of commands. Programming that sequence of commands directly is much harder than having an application generate the commands automatically from the simpler, denotational description.
+This document is a literate programming summary of a paper called *Functional Geometry* by Peter Henderson ([original (1982)](users.ecs.soton.ac.uk/peter/funcgeo.pdf), [revisited (2002)](https://cs.au.dk/~hosc/local/HOSC-15-4-pp349-365.pdf)). It is an attempt to reconstruct MC Escher's woodcut *Square Limit* using functional programming.
+
+A picture as a value not too dissimilar to numbers. With a set of operators that do simple things with pictures we create an algebra of pictures and build up to the final image seen below.
+$(vskip(1em))
 
 $(image("http://i.imgur.com/LjRzmNM.png") |> hbox |> packitems(center))
 
-# Introduction
+# A picture
 
 A `picture` is a *denotation* of something to draw.
+
+> A picture is an example of a complex object that can be described in terms of its parts.  Yet a picture needs to be rendered on a printer or a screen by a device that expects to be given a sequence of commands. Programming that sequence of commands directly is much harder than having an application generate the commands automatically from the simpler, denotational description.
 
 e.g. The value of f here denotes the picture of the letter F
 
@@ -159,8 +166,13 @@ $(codecell("rot(f)"))
 
 Flip a picture along its virtical center axis
 
-$(codecell("flip(f)"))
-$(codecell("rot(flip(f))"))
+$(
+    hbox(
+        codecell("flip(f)"),
+        hskip(3em),
+        codecell("rot(flip(f))"),
+    )
+)
 
 ### fliprot45 : picture → picture
 
@@ -188,7 +200,7 @@ Similar to `above` but in the left-to-right direction.
 
 $(codecell("beside(f, f)"))
 
-### `beside : int × int × picture × picture → picture`
+#### `beside : int × int × picture × picture → picture`
 
 $(codecell("beside(1, 2, f, f)"))
 
@@ -197,7 +209,7 @@ $(codecell("above(beside(f, f), f)"))
 
 ## Superposition
 
-### `over : picture → picture`
+#### `over : picture → picture`
 
 place a picture upon another
 
@@ -215,7 +227,9 @@ $(codecell("over(fish, rot(rot(fish))) |> zoomout"))
 
 ## Tiles
 
-There is a certain kind of arrangement that is used to tile parts of the image. We call it `t`
+There is a certain kind of arrangement that is used to tile parts of the image.
+
+`t`:
 
 $(codecell(
 "fish2 = fliprot45(fish)
@@ -225,6 +239,8 @@ t = over(fish, over(fish2, fish3))
 
 t |> zoomout
 "))
+
+`u`:
 
 $(codecell(
 
@@ -279,14 +295,14 @@ the 1 in `side1` represents 1 level of recursion. This is the simplest side.
 $(codecell(
 "side1 = quartet(blank, blank, rot(t), t)
 
-side1 |> zoomout", f=midsize))
+side1 |> zoomout", f=midsize, layout=vbox))
 
 A side that is 2 levels deep.
 
 $(codecell(
 "side2 = quartet(side1,side1,rot(t),t)
 
-side2 |> zoomout", f=midsize))
+side2 |> zoomout", f=midsize, layout=vbox))
 
 n-levels deep:
 
@@ -297,7 +313,7 @@ $(codecell(
     end
 
 side(3) |> zoomout
-", f=midsize))
+", f=midsize, layout=vbox))
 
 Similarly, there is a certain kind of arrangement which makes up the corners of the artwork.
 
@@ -306,14 +322,14 @@ A `corner` 1 level deep is simply
 $(codecell(
 "corner1 = quartet(blank,blank,blank,u)
 
-corner1 |> zoomout", f=midsize))
+corner1 |> zoomout", f=midsize, layout=vbox))
 
 A corner 2 levels deep, it is built using corner1, side1 and u.
 
 $(codecell(
 "corner2 = quartet(corner1,side1,rot(side1),u)
 
-corner2 |> zoomout", f=midsize))
+corner2 |> zoomout", f=midsize, layout=vbox))
 
 An n level deep corner.
 
@@ -322,7 +338,7 @@ $(codecell(
     n == 1 ? corner1 :
              quartet(corner(n-1), side(n-1), rot(side(n-1)), u)
 
-corner(3) |> zoomout", f=midsize))
+corner(3) |> zoomout", f=midsize, layout=vbox))
 
 # Square limit
 
@@ -334,11 +350,12 @@ $(codecell(
           rot(side(n)), u, rot(rot(rot(side(n)))),
           rot(corner(n)), rot(rot(side(n))), rot(rot(corner(n))))
 
-squarelimit(3)", f=largesize))
+squarelimit(3)", f=largesize, layout=vbox))
 
 
+*The End.*
 
 
-""" |> Escher.pad(1em) |> maxwidth(76em)
+""" |> Escher.pad([top, bottom], 4em) |> maxwidth(50em) |> vbox |> packacross(center)
 
 end
