@@ -110,18 +110,18 @@ const happy_birthday = [
   vbox(
       title(2, "Happy"),
         vskip(2em),
-      image("http://briefyourmarketblog.com/wp-content/uploads/2015/05/Happy-Workplaces.jpg") |> width(40em)
+      image("http://briefyourmarketblog.com/wp-content/uploads/2015/05/Happy-Workplaces.jpg") |> Escher.width(40em)
   ),
 
   vbox(
       title(2, "Happy Birthday"),
         vskip(2em),
-      image("http://dreamatico.com/data_images/birthday/birthday-5.jpg") |> width(40em)
+      image("http://dreamatico.com/data_images/birthday/birthday-5.jpg") |> Escher.width(40em)
   ),
   vbox(
       title(2, "Happy Birthday Nick!"),
         vskip(2em),
-      image("http://www.brynashley.com/wp-content/uploads/2012/10/IMG_4414.jpg") |> width(40em)
+      image("http://www.brynashley.com/wp-content/uploads/2012/10/IMG_4414.jpg") |> Escher.width(40em)
   )
 ]
 
@@ -173,7 +173,7 @@ function main(window)
             consume(newton_steps) do n
                 (
                     matchdigits(newton(big(2), 2, n), sqrt2)
-                ) |> size(30em, 30em)
+                ) |> size(40em, 30em)
             end
         ),
 
