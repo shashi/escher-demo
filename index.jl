@@ -181,7 +181,7 @@ function main(window)
             title(2, "Matrix multiplication"),
 
 
-            radiogroup([radio(k, join(map(string, v), "-")) for (k, v) in perms], selected="ijk") >>> matmul_order,
+            radiogroup([radio(k, join(map(string, v), " ")) for (k, v) in perms], selected="ijk") >>> matmul_order,
 
             slider(1:n^3) >>> stop,
             consume(stop, matmul_order) do n, ord
@@ -190,7 +190,7 @@ function main(window)
                     stringmime(MIME"text/plain"(), matmuls[ord](o,o,n)),
                     readonly=true,
                     linenumbers=false
-                ) |> size(40em, 18em)
+                ) |> vbox |> size(28em, 18em)
             end
         ) |> packacross(center),
 
