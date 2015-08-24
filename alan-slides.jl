@@ -55,7 +55,7 @@ function matchdigits(x::Number, x0::Number)
         end
         print(buf, s[i])
     end
-    hbox(fontweight(bold, takebuf_string(buf)), s[i:end])
+    Escher.render(md"""**$(takebuf_string(buf))**$(s[i:end])""", Dict()) & [:style=> [:wordWrap => "break-word"]]
 end
 
 set_bigfloat_precision(1024)
@@ -65,34 +65,25 @@ sqrt2 = sqrt(big(2))
 # Mat Mul
 
 
-function matmul_ijk(a,b,stop)
-    step=0
-    n=size(a,1)
-    c=zeros(a)
-    for i=1:n, j=1:n, k=1:n  
-        if step==stop;  return(c); end
-          c[i,j] +=  a[i,k] * b[k,j]
-        step+=1
-    end
-    c
+function matmul(x, y, z)
+    quote
+        (a,b,stop) -> begin
+            step=0
+            n=size(a,1)
+            c=zeros(a)
+            for $x=1:n, $y=1:n, $z=1:n  
+                if step==stop;  return(c); end
+                  c[i,j] +=  a[i,k] * b[k,j]
+                step+=1
+            end
+            c
+        end
+    end |> eval
 end
 
-function matmul_kji(a,b,stop)
-    step=0
-    n=size(a,1)
-    c=zeros(a)
-    for k=1:n, j=1:n, i=1:n  
-        if step==stop;  return(c); end
-        c[i,j] +=  a[i,k] * b[k,j]
-        step+=1
-    end
-    c
-end
+perms = collect(zip(permutations("ijk"), permutations([:i, :j, :k])))
 
-matmuls = [
-    "matmul_ijk" => matmul_ijk,
-    "matmul_kji" => matmul_kji
-]
+matmuls = [k => matmul(v...) for (k, v) in perms]
 
 n=10
 o=int(ones(n,n))
@@ -115,6 +106,25 @@ function get_compressed(k)
         uB[:,1:k]*diagm(sB[1:k])*vB[:,1:k]'))'
 end
 
+const happy_birthday = [
+  vbox(
+      title(2, "Happy"),
+        vskip(2em),
+      image("http://briefyourmarketblog.com/wp-content/uploads/2015/05/Happy-Workplaces.jpg") |> width(40em)
+  ),
+
+  vbox(
+      title(2, "Happy Birthday"),
+        vskip(2em),
+      image("http://dreamatico.com/data_images/birthday/birthday-5.jpg") |> width(40em)
+  ),
+  vbox(
+      title(2, "Happy Birthday Nick!"),
+        vskip(2em),
+      image("http://www.brynashley.com/wp-content/uploads/2012/10/IMG_4414.jpg") |> width(40em)
+  )
+]
+
 function main(window)
     push!(window.assets, "codemirror")
     push!(window.assets, "animation")
@@ -125,15 +135,25 @@ function main(window)
     newton_steps = Input(1)
     stop = Input(0)
     compress_iter = Input(1)
-    matmul_order = Input("matmul_ijk")
-    lift(println, matmul_order)
+    matmul_order = Input("ijk")
+    bday = Input(1)
 
     slideshow([
-       title(4, "Escher") |> letterspacing(-.05em),
+       vbox(
+           title(3, "The Julia Computing Language") |> letterspacing(-.05em),
+           vskip(2em),
+           title(2, "Alan Edelman, MIT"),
+           title(1, "25 Aug 2015"),
+       ),
+
         vbox(
            title(2, "Random walk"),
            vskip(1em),
-           plot(x=1:1000, y=cumsum(randn(1000)), Geom.line)
+           code_cell("""
+           plot(x=1:100,
+                y=cumsum(randn(100)),
+                Geom.line)
+           """)
        ),
 
         vbox(
@@ -149,53 +169,42 @@ function main(window)
             title(2, "Convergence of Newton's method"),
             vskip(1em),
             "Number of steps:",
-            slider(1:6) >>> newton_steps,
+            slider(1:10) >>> newton_steps,
             consume(newton_steps) do n
                 (
                     matchdigits(newton(big(2), 2, n), sqrt2)
-                ) |> vbox |> width(30em)
+                ) |> size(30em, 30em)
             end
         ),
 
         vbox(
             title(2, "Matrix multiplication"),
 
-            radiogroup([
-                radio("matmul_ijk", "i-j-k"),
-                radio("matmul_kji",  "k-j-i"),
-            ], selected="matmul_ijk") >>> matmul_order,
+
+            radiogroup([radio(k, join(map(string, v), "-")) for (k, v) in perms], selected="ijk") >>> matmul_order,
 
             slider(1:n^3) >>> stop,
             consume(stop, matmul_order) do n, ord
 
                 codemirror(
-                    string(matmuls[ord](o,o,n)),
-                    readonly=true
-                )
+                    stringmime(MIME"text/plain"(), matmuls[ord](o,o,n)),
+                    readonly=true,
+                    linenumbers=false
+                ) |> size(40em, 18em)
             end
-        ),
+        ) |> packacross(center),
 
         vbox(
             title(2, "Image compression with SVD"),
+            vskip(2em),
             slider(1:30) >>> compress_iter,
             consume(get_compressed, compress_iter)
         ) |> packacross(center),
 
         vbox(
-            title(2, "Code cell"),
-            vskip(1em),
-            code_cell("""
-            freq = Input(1.0)
-
-            vbox(
-                slider(1:1:10.0) >>> freq,
-                consume(freq) do f
-                    plot(x -> sin(f*x), 0, 10)
-                end
-            )
-            """)
-        ),
-
-        title(3, "Thank you")
+            slider(1:3) >>> bday,
+            consume(x -> happy_birthday[x], bday) |> Escher.height(40em)
+        )
     ])
 end
+

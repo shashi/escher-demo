@@ -17,7 +17,7 @@ codeslide(code) = begin
         code_io(code, input) |> size(27em, 37em),
         hskip(1em),
         vbox(
-            lift(showoutput, input, typ=Any)
+            consume(showoutput, input, typ=Any)
         ) |> size(25em, 35em) |> Escher.pad(1em) |> fillcolor("white") |> roundcorner(0.5em)
     ) |> Escher.pad(1em) |> fillcolor("#e1e4e8") |> paper(2)
 end
