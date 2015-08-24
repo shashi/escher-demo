@@ -25,7 +25,7 @@ showinput(code;kwargs...) = begin
     watch!(s) |>
     keypress("ctrl+enter") |>
     trigger!(s) |>
-    sample(s)
+    plugsampler(s)
 end
 
 getcode(x) = x[:code]
