@@ -1,5 +1,3 @@
-using Markdown
-using Interact
 using Compose
 
 Compose.set_default_graphic_size(2inch, 2inch)
@@ -66,9 +64,6 @@ end
 fish = compose(context(units=UnitBox(260, 260)), stroke("black"),
             read_path(strip(readall("fish.path"))))
 
-rotatable(pic) = @manipulate for θ=0:0.001:2π
-    compose(context(rotation=Rotation(θ)), pic)
-end
 
 blank = compose(context())
 

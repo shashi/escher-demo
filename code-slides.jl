@@ -1,6 +1,4 @@
 
-using SymPy
-
 include("repl.jl")
 
 function code_cell(code)

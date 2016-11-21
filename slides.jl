@@ -1,26 +1,14 @@
-using Markdown
-using Color
-using SymPy
+using Colors
+#using SymPy
 using Compose
 using Gadfly
 using Images
 
-include("repl.jl")
+include("code-cell.jl")
 
 presentable(x) = Escher.fontsize(1.5em, lineheight(2em, x))
 
 Compose.set_default_graphic_size(4inch, (2*√3)*inch)
-
-codeslide(code) = begin
-    input = Input(code)
-    hbox(
-        code_io(code, input) |> size(27em, 37em),
-        hskip(1em),
-        vbox(
-            lift(showoutput, input, typ=Any)
-        ) |> size(25em, 35em) |> Escher.pad(1em) |> fillcolor("white") |> roundcorner(0.5em)
-    ) |> Escher.pad(1em) |> fillcolor("#e1e4e8") |> paper(2)
-end
 
 indent(x) = Escher.pad([left], 3em, x) |> Escher.fontsize(0.8em) |> lineheight(1.5em)
 
@@ -33,47 +21,53 @@ function main(window)
 
     slideshow([
         vbox(
-            title(2, "What?"),
-            title(3, "A Virtual DOM on the Server?"),
-            vskip(4em),
-            title(1, "Shashi Gowda"),
-            title(1, "@g0wda"),
-            title(1, "shashi.github.io/Escher.jl")
+            title(3, md"Reactive programming"),
+            title(2, md"Inspiration: Elm"),
+            title(1, md"elm-lang.org"),
+            title(2, md"Reactive.jl"),
+            title(1, md"github.com/JuliaLang/Reactive.jl"),
         ),
-        title(2, md"Yes. Settle for nothing less!"),
-        title(2, md"\"Recommendation system\": 33 SLOC"),
-        title(2, md"Trade data viewer: 194 SLOC"),
-        title(2, md"2D FFT of video stream: 13 SLOC"),
-        title(2, md"A sierpinski's triangle: 24 SLOC"),
-        title(2, md"Minesweeper: 70 SLOC"),
-        #include(joinpath(pwd(), "minesweeper.jl"))(window),
-        title(2, md"Boids: 84 SLOC (credits: Iain Dunning github.com/IainNZ)"),
-        title(3, "But how?"),
+        vbox(
+            title(2, md"The Signal primer"),
+            title(3, md"Think *circuitry*"),
+            title(2, md"`dataₜ ⇝ f ⇝ outputₜ`"),
+        ) |> packacross(center),
+        vbox(
+           title(2, "Signal: first principles"),
+           vskip(2em),
+           md"""- A signal has a value at any given time
+              - The value held by a signal can change as time passes""" |> presentable,
+        ),
+        vbox(
+           title(2, "Signal Signal"),
+           vskip(1em),
+           "An input signal is created as below. It must have a default value." |> presentable,
+           vskip(1em),
+           codemirror("int_signal = Signal(0)"),
+           md"The value held by an input signal can be updated with `push!`" |> presentable,
+           codemirror("push!(int_signal, 42)"),
+        ),
+        vbox(
+           title(2, "Functions that operate on signals"),
+           vskip(2em),
+           codemirror("""
+           map     : (Function, Signal) ⟶ Signal
+           foldp       : (Function, initial_value, Signal) ⟶ Signal
+           filter      : (Function, default_value, Signal) ⟶ Signal
+           merge       : (Signal...) ⟶ Signal
+           droprepeats : (Signal) ⟶ Signal
+           keepwhen    : (Signal{Bool}, Signal) ⟶ Signal
+           fps         : (Float64) ⟶ Signal
+           fpswhen     : (Signal{Bool}, Float64) ⟶ Signal
+           """, linenumbers=false) |> fonttype(monospace) |> presentable
+        ),
         vbox(
             title(3, "The DOM"),
             vskip(2em),
             title(4, "¯\\_(ツ)_/¯"),
         ) |> packacross(center),
         vbox(
-            title(3, "DOM is state."),
-            vskip(2em),
-            title(1, "Bad DOM!"),
-            vskip(2em),
-            vbox(
-                md"- State leads to combinatorial explosion.",
-                  md"- Average person can hold < 10 things in his brain at a time" |> indent,
-                  md"- But 2^50 = 10^15, there are 10^11 stars in the Milky Way" |> indent,
-                md"- State and Callback are the evil king and queen",
-                  md"""
-                  - They necessitate each other
-                  - We increasingly understand that callbacks are not ideal""" |> indent,
-              ) |> presentable
-        ),
-        vbox(
             title(3, "Virtual DOM"),
-            vskip(1em),
-            "The Insurgency" |> Escher.fontsize(1.5em),
-            vskip(1em),
             vbox(
                 md"- Enables stateless functions",
                 md"""
@@ -86,13 +80,6 @@ function main(window)
                 md"- Gets along oh so well with FRP",
                 md"- An escape hatch from Callback Hell" |> indent
             ) |> presentable
-        ),
-        vbox(
-            title(3, "Over to the dark side!"),
-            vskip(1em),
-            title(2, "Virtual DOM on the server"),
-            vskip(3em),
-            image("http://i.giphy.com/UY6K0O5xNeG2s.gif", alt="The Eye of Sauron"),
         ),
         vbox(
             title(3, "Virtual DOM is the substrate"),
@@ -213,7 +200,7 @@ function main(window)
                 Escher.fontsize(1.5em)) |>
                 packacross(center),
             codeslide("""
-            # using Color
+            # using Colors
             colors = colormap("reds", 7)
 
             box1 = container(10em, 10em) |>
@@ -296,7 +283,7 @@ function main(window)
             h1("The story so far"), vskip(1em), title(3, tex("UI = f(data)")),
         ),
         vbox(
-            title(3, md"We turn to reactive programming"),
+            title(3, md"Reactive programming"),
             title(2, md"Inspiration: Elm"),
             title(1, md"elm-lang.org"),
             title(2, md"Reactive.jl"),
@@ -314,11 +301,11 @@ function main(window)
               - The value held by a signal can change as time passes""" |> presentable,
         ),
         vbox(
-           title(2, "Input Signal"),
+           title(2, "Signal Signal"),
            vskip(1em),
            "An input signal is created as below. It must have a default value." |> presentable,
            vskip(1em),
-           codemirror("int_signal = Input(0)"),
+           codemirror("int_signal = Signal(0)"),
            md"The value held by an input signal can be updated with `push!`" |> presentable,
            codemirror("push!(int_signal, 42)"),
         ),
@@ -326,8 +313,8 @@ function main(window)
            title(2, "Functions that operate on signals"),
            vskip(2em),
            codemirror("""
-           consume     : (Function, Signal) ⟶ Signal
-           foldl       : (Function, initial_value, Signal) ⟶ Signal
+           map     : (Function, Signal) ⟶ Signal
+           foldp       : (Function, initial_value, Signal) ⟶ Signal
            filter      : (Function, default_value, Signal) ⟶ Signal
            merge       : (Signal...) ⟶ Signal
            droprepeats : (Signal) ⟶ Signal
@@ -337,26 +324,25 @@ function main(window)
            """, linenumbers=false) |> fonttype(monospace) |> presentable
         ),
         vbox(
-           title(2, md"consume example: turning `Input` into a signal of UIs"),
+           title(2, md"map example: turning `Signal` into a signal of UIs"),
            codeslide("""
-           steps = Input(0)
+           steps = Signal(0)
 
            steps_slider =
-               subscribe(slider(0:6), steps)
+               subscribe(steps, slider(0:6))
 
            vbox(
                steps_slider,
-               consume(sierpinski, steps),
+               map(sierpinski, steps),
            )
            """),
         ),
         vbox(
-           title(2, "consume example: Animation"),
+           title(2, "map example: Animation"),
            vskip(1em),
            codeslide("""
-           switch_state = Input(false)
-           switch = subscribe(togglebutton(false),
-                              switch_state)
+           switch_state = Signal(false)
+           switch = subscribe(switch_state, togglebutton(false))
 
            ticks = fpswhen(switch_state, 60)
 
@@ -368,7 +354,7 @@ function main(window)
                ), fill("tomato"))
            vbox(
                switch,
-               consume(showball, ticks),
+               map(showball, ticks),
            )
            """),
         ),
@@ -385,13 +371,13 @@ function main(window)
                         Escher.fontsize(2em) |>
                         fontweight(500))
 
-            clicks = Input{Escher.MouseButton}(
+            clicks = Signal{Escher.MouseButton}(
                        leftbutton
             )
 
             vbox(
-                subscribe(clickme, clicks),
-                foldl((cnt, _) -> cnt + 1, 0, clicks),
+                subscribe(clicks, clickme),
+                foldp((cnt, _) -> cnt + 1, 0, clicks),
             )
             """)
         ),
@@ -429,12 +415,12 @@ function main(window)
             title(2, md"Interpreter example: `constant`"),
             vskip(1em),
             codeslide("""
-            delta = Input(0)
+            delta = Signal(0)
 
             inc = constant(1, button("+")) >>> delta
             dec = constant(-1, button("-")) >>> delta
 
-            count = foldl(+, 0, delta)
+            count = foldp(+, 0, delta)
 
             hbox(
                 inc,
@@ -452,9 +438,6 @@ function main(window)
             
             a slider has a default behaviour of `WatchState` and an interpreter `ToType{Real}`
             """ |> presentable,
-        ),
-        vbox(
-            title(2, "Real world code walk-through"),
         ),
         #image("/assets/img/dynamicui.png"),
         #include(joinpath(pwd(), "latex.jl"))(window),
@@ -476,7 +459,7 @@ function main(window)
             """ |> lineheight(2em) |> Escher.fontsize(2em)
         ),
         vbox(
-            title(3, "Thank you for listening!"), vskip(1em),
+            title(3, "Thank you!"), vskip(1em),
             title(2, "https://shashi.github.io/Escher.jl"), vskip(1em),
             title(1, "or just google Escher.jl"),
         ),

@@ -1,5 +1,3 @@
-using Markdown
-
 # Function that executes code and
 # returns the result
 execute_code(code) = begin
@@ -20,17 +18,12 @@ end
 showinput(code;kwargs...) = begin
     s = sampler()
 
-    @show kwargs
-    codemirror(code; kwargs...) |>
-    watch!(s) |>
-    keypress("ctrl+enter") |>
-    trigger!(s) |>
-    plugsampler(s)
+    codemirror(code; kwargs...)
 end
 
 getcode(x) = x[:code]
-code_io(code, code_input; kwargs...) = begin
-    addinterpreter(getcode, showinput(code; name=:code, kwargs...)) >>> code_input
+code_io(code, code_input; name=:code, kwargs...) = begin
+    addinterpreter(getcode, bubble(name, showinput(code; kwargs...))) >>> code_input
 end
 
 # Output area
@@ -59,7 +52,7 @@ function append_execution(repl, code)
         vcat(
             repl.tiles.tiles,
             vbox(
-                code_io(code, cell_sig, linenumbers=false, name=:code),
+                code_io(code, cell_sig, linenumbers=false),
                 lift(showoutput, cell_sig)
             )
         )
