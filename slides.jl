@@ -59,10 +59,11 @@ function main(window)
            keepwhen    : (Signal{Bool}, Signal) ⟶ Signal
            fps         : (Float64) ⟶ Signal
            fpswhen     : (Signal{Bool}, Float64) ⟶ Signal
+           throttle    : (Float64, Signal) ⟶ Signal
            """, linenumbers=false) |> fonttype(monospace) |> presentable
         ),
         vbox(
-            title(3, "The DOM"),
+            title(3, "The DOM - the browser's representation"),
             vskip(2em),
             title(4, "¯\\_(ツ)_/¯"),
         ) |> packacross(center),
@@ -140,7 +141,7 @@ function main(window)
             vskip(1em),
             title(1, "shashi.github.io/Escher.jl"),
             vskip(1em),
-            "Delicious layers of pixie dust on top of Virtual DOM" |> Escher.fontsize(1.5em)
+            "Delicious layers of abstraction on top of Virtual DOM" |> Escher.fontsize(1.5em)
         ),
         vbox(
             title(1, md"Abstraction 1"),
@@ -276,54 +277,6 @@ function main(window)
             """)
         ),
         vbox(
-            title(2, md"Interactivity"),
-            title(1, md"Introducing the time dimension"),
-        ),
-        vbox(
-            h1("The story so far"), vskip(1em), title(3, tex("UI = f(data)")),
-        ),
-        vbox(
-            title(3, md"Reactive programming"),
-            title(2, md"Inspiration: Elm"),
-            title(1, md"elm-lang.org"),
-            title(2, md"Reactive.jl"),
-            title(1, md"github.com/JuliaLang/Reactive.jl"),
-        ),
-        vbox(
-            title(2, md"The Signal primer"),
-            title(3, md"Think *circuitry*"),
-            title(2, md"`dataₜ ⇝ f ⇝ outputₜ`"),
-        ) |> packacross(center),
-        vbox(
-           title(2, "Signal: first principles"),
-           vskip(2em),
-           md"""- A signal has a value at any given time
-              - The value held by a signal can change as time passes""" |> presentable,
-        ),
-        vbox(
-           title(2, "Signal Signal"),
-           vskip(1em),
-           "An input signal is created as below. It must have a default value." |> presentable,
-           vskip(1em),
-           codemirror("int_signal = Signal(0)"),
-           md"The value held by an input signal can be updated with `push!`" |> presentable,
-           codemirror("push!(int_signal, 42)"),
-        ),
-        vbox(
-           title(2, "Functions that operate on signals"),
-           vskip(2em),
-           codemirror("""
-           map     : (Function, Signal) ⟶ Signal
-           foldp       : (Function, initial_value, Signal) ⟶ Signal
-           filter      : (Function, default_value, Signal) ⟶ Signal
-           merge       : (Signal...) ⟶ Signal
-           droprepeats : (Signal) ⟶ Signal
-           keepwhen    : (Signal{Bool}, Signal) ⟶ Signal
-           fps         : (Float64) ⟶ Signal
-           fpswhen     : (Signal{Bool}, Float64) ⟶ Signal
-           """, linenumbers=false) |> fonttype(monospace) |> presentable
-        ),
-        vbox(
            title(2, md"map example: turning `Signal` into a signal of UIs"),
            codeslide("""
            steps = Signal(0)
@@ -358,59 +311,59 @@ function main(window)
            )
            """),
         ),
-        title(3, "What makes a Widget?"),
-        vbox(
-            title(1, "Abstraction 4"),
-            title(3, "Behavior"),
-        ),
-        vbox(
-            title(2, "Behavior"),
-            vskip(1em),
-            codeslide("""
-            clickme = clickable("Click me!" |>
-                        Escher.fontsize(2em) |>
-                        fontweight(500))
+#       title(3, "What makes a Widget?"),
+#       vbox(
+#           title(1, "Abstraction 4"),
+#           title(3, "Behavior"),
+#       ),
+#       vbox(
+#           title(2, "Behavior"),
+#           vskip(1em),
+#           codeslide("""
+#           clickme = clickable("Click me!" |>
+#                       Escher.fontsize(2em) |>
+#                       fontweight(500))
 
-            clicks = Signal{Escher.MouseButton}(
-                       leftbutton
-            )
+#           clicks = Signal{Escher.MouseButton}(
+#                      leftbutton
+#           )
 
-            vbox(
-                subscribe(clicks, clickme),
-                foldp((cnt, _) -> cnt + 1, 0, clicks),
-            )
-            """)
-        ),
-        vbox(
-            title(2, "What's in the DOM?"),
-            vskip(1em),
-            md"""
-            - `clickable-behavior` adds a click event listener to its parent
-            - it can be configured to listen for different mouse buttons
-            - `signal-transport` updates a signal with a `signalId` on the server
-            - `stop-propagation` stops the event from bubbling up to prevent clashes
-            """ |> presentable
-        ),
-        vbox(
-            title(2, "Other behaviors include"),
-            vskip(1em),
-            md"""
-            - `hasstate`: watch for attribute X when event Y is fired
-            - `keypress`: watch for certain keypresses
-            """ |> presentable
-        ),
-        vbox(
-            title(1, "Abstraction (Julia-side) 5"),
-            title(3, "Interpreters"),
-        ),
-        vbox(
-            title(2, "Why do we need interpreters?"),
-            vskip(1em),
-            md"""
-            - Each behavior results in a certain kind of values. e.g. Clicks are of the type `MouseButton`
-            - Interpreters allow us to decode and augment messages coming from the browser
-            """ |> presentable
-        ),
+#           vbox(
+#               subscribe(clicks, clickme),
+#               foldp((cnt, _) -> cnt + 1, 0, clicks),
+#           )
+#           """)
+#       ),
+#       vbox(
+#           title(2, "What's in the DOM?"),
+#           vskip(1em),
+#           md"""
+#           - `clickable-behavior` adds a click event listener to its parent
+#           - it can be configured to listen for different mouse buttons
+#           - `signal-transport` updates a signal with a `signalId` on the server
+#           - `stop-propagation` stops the event from bubbling up to prevent clashes
+#           """ |> presentable
+#       ),
+#       vbox(
+#           title(2, "Other behaviors include"),
+#           vskip(1em),
+#           md"""
+#           - `hasstate`: watch for attribute X when event Y is fired
+#           - `keypress`: watch for certain keypresses
+#           """ |> presentable
+#       ),
+#       vbox(
+#           title(1, "Abstraction (Julia-side) 5"),
+#           title(3, "Interpreters"),
+#       ),
+#       vbox(
+#           title(2, "Why do we need interpreters?"),
+#           vskip(1em),
+#           md"""
+#           - Each behavior results in a certain kind of values. e.g. Clicks are of the type `MouseButton`
+#           - Interpreters allow us to decode and augment messages coming from the browser
+#           """ |> presentable
+#       ),
         vbox(
             title(2, md"Interpreter example: `constant`"),
             vskip(1em),
@@ -431,14 +384,14 @@ function main(window)
             )
             """)
         ),
-        vbox(
-            title(2, "Widget = UI + Behavior + Interpreter"),
-            md"""
-            For example,,
-            
-            a slider has a default behaviour of `WatchState` and an interpreter `ToType{Real}`
-            """ |> presentable,
-        ),
+#       vbox(
+#           title(2, "Widget = UI + Behavior + Interpreter"),
+#           md"""
+#           For example,,
+#           
+#           a slider has a default behaviour of `WatchState` and an interpreter `ToType{Real}`
+#           """ |> presentable,
+#       ),
         #image("/assets/img/dynamicui.png"),
         #include(joinpath(pwd(), "latex.jl"))(window),
         vbox(
@@ -462,6 +415,11 @@ function main(window)
             title(3, "Thank you!"), vskip(1em),
             title(2, "https://shashi.github.io/Escher.jl"), vskip(1em),
             title(1, "or just google Escher.jl"),
+        ),
+        vbox(
+            title(3, "Next steps"), vskip(1em),
+            title(1, "Drastic Simplification - WebDisplay"), vskip(1em),
+            title(1, "Make it work everywhere"), vskip(1em),
         ),
     ])
 end
